@@ -3,30 +3,68 @@ name: nodeseek鸡腿签到
 on:
   push:
     branches:
-      - main  # 在 main 分支上进行推送时触发 
+      - main
   schedule:
-    - cron: '00 16 * * *'  # 每天凌晨 12 点执行
+    - cron: '00 16 * * *'  # 北京时间 00:00 (UTC+8)，对应UTC时间 16:00
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write  # 添加写入Actions变量的权限
 
 jobs:
   run-nodeseek-sign:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: 检出代码仓库
         uses: actions/checkout@v3
       
-      - name: Set up Python environment
+      - name: 配置Python环境
         uses: actions/setup-python@v2
         with:
           python-version: '3.11.8'
 
-      - name: install
-        run: pip install requests curl_cffi
+      - name: 安装依赖包
+        run: |
+          pip install curl_cffi requests --upgrade
 
-      - name: run
+
+      - name: 运行签到脚本
         env:
-          COOKIE: ${{ secrets.COOKIE }}
-          PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          CHAT_ID: ${{ secrets.CHAT_ID }}
+          # 基本账号
+          USER: ${{ secrets.USER }}
+          PASS: ${{ secrets.PASS }}
+          
+          # 额外账号1-5
+          USER1: ${{ secrets.USER1 }}
+          PASS1: ${{ secrets.PASS1 }}
+          USER2: ${{ secrets.USER2 }}
+          PASS2: ${{ secrets.PASS2 }}
+          USER3: ${{ secrets.USER3 }}
+          PASS3: ${{ secrets.PASS3 }}
+          USER4: ${{ secrets.USER4 }}
+          PASS4: ${{ secrets.PASS4 }}
+          USER5: ${{ secrets.USER5 }}
+          PASS5: ${{ secrets.PASS5 }}
+          
+          # Cookie配置
+          NS_COOKIE: ${{ vars.NS_COOKIE || secrets.NS_COOKIE }}
+          NS_RANDOM: ${{ secrets.NS_RANDOM }}
+          # 验证码配置
+          SOLVER_TYPE: ${{ secrets.SOLVER_TYPE }}
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          CLIENTT_KEY: ${{ secrets.CLIENTT_KEY }}
+          
+          # GitHub API配置
+          GH_PAT: ${{ secrets.GH_PAT }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          
+          # 指纹配置
+          NS_IMPERSONATE: ${{ secrets.NS_IMPERSONATE || 'chrome110' }}
+
+          # 通知推送配置
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_USER_ID: ${{ secrets.TG_USER_ID }}
+          TG_THREAD_ID: ${{ secrets.TG_THREAD_ID }}
         run: python nodeseek_sign.py
